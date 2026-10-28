@@ -20,25 +20,43 @@ export function Cursor() {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const k = reduced ? 1 : 0.3;
     document.documentElement.classList.add("has-cursor");
-    let x = 0, y = 0, cx = 0, cy = 0, raf = 0, visible = false;
+    let x = 0,
+      y = 0,
+      cx = 0,
+      cy = 0,
+      raf = 0,
+      visible = false;
 
-    const setState = (s: string) => { if (el.dataset["state"] !== s) el.dataset["state"] = s; };
+    const setState = (s: string) => {
+      if (el.dataset["state"] !== s) el.dataset["state"] = s;
+    };
     const loop = () => {
-      cx += (x - cx) * k; cy += (y - cy) * k;
+      cx += (x - cx) * k;
+      cy += (y - cy) * k;
       el.style.transform = `translate3d(${cx}px,${cy}px,0)`;
       raf = Math.abs(x - cx) + Math.abs(y - cy) > 0.1 ? requestAnimationFrame(loop) : 0;
     };
     const move = (e: PointerEvent) => {
       if (e.pointerType !== "mouse") return;
-      x = e.clientX; y = e.clientY;
-      if (!visible) { cx = x; cy = y; visible = true; } // snap on (re)entry: no jump
-      const t = (e.target as Element).closest?.("[data-cursor],a,button,input,textarea,select,[contenteditable]");
+      x = e.clientX;
+      y = e.clientY;
+      if (!visible) {
+        cx = x;
+        cy = y;
+        visible = true;
+      } // snap on (re)entry: no jump
+      const t = (e.target as Element).closest?.(
+        "[data-cursor],a,button,input,textarea,select,[contenteditable]",
+      );
       if (!t) setState("default");
       else if (t.matches("input,textarea,select,[contenteditable]")) setState("hidden");
       else setState(t.getAttribute("data-cursor") ?? (t.tagName === "BUTTON" ? "button" : "link"));
       if (!raf) raf = requestAnimationFrame(loop);
     };
-    const leave = () => { visible = false; setState("hidden"); };
+    const leave = () => {
+      visible = false;
+      setState("hidden");
+    };
 
     window.addEventListener("pointermove", move, { passive: true });
     document.documentElement.addEventListener("pointerleave", leave);
